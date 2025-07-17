@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>エントリー画像生成</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+
+    canvas {
+      border: 1px solid #ccc;
+      display: block;
+      margin-top: 20px;
+    }
+
+    input,
+    button {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>エントリー画像生成ツール</h1>
+  <label>日付: <input type="text" id="date" value="2025/07/13" /></label><br />
+  <label>大会名: <input type="text" id="event" value="第一回あま正則杯" /></label><br />
+  <button onclick="generate()">画像を生成</button>
+  <button onclick="downloadImage()">ダウンロード</button>
+  <canvas id="canvas" width="2480" height="3508"></canvas>
+
+  <script>
+    const DPI = 300;
+    const MM_TO_PX = 118.11;
+    const A4_WIDTH = 2480;
+    const A4_HEIGHT = 3508;
+
+    const BOX_WIDTH = 8.5 * MM_TO_PX;
+    const BOX_HEIGHT = 1 * MM_TO_PX;
+    const MARGIN_LEFT = 50;
+    const START_Y = 50;
+    const NUM_COLUMNS = 2;
+    const COLUMN_SPACING = 0;
+    const COLUMN_POSITIONS = [MARGIN_LEFT, MARGIN_LEFT + BOX_WIDTH + COLUMN_SPACING];
+
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    function generate() {
+      const date = document.getElementById("date").value;
+      const eventName = document.getElementById("event").value;
+      const entryText = `${date}  ${eventName}`;
+
+      // 背景を白く塗る
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, A4_WIDTH, A4_HEIGHT);
+
+      // スタイル
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 2;
+      ctx.font = "bold 60px sans-serif";
+      ctx.fillStyle = "black";
+
+      const numRows = Math.floor((A4_HEIGHT - START_Y) / BOX_HEIGHT);
+      const totalEntries = numRows * NUM_COLUMNS;
+
+      for (let i = 0; i < totalEntries; i++) {
+        const row = Math.floor(i / NUM_COLUMNS);
+        const col = i % NUM_COLUMNS;
+        const x = COLUMN_POSITIONS[col];
+        const y = START_Y + row * BOX_HEIGHT;
+
+        // 枠
+        ctx.strokeRect(x, y, BOX_WIDTH, BOX_HEIGHT);
+
+        // 境界線
+        ctx.beginPath();
+        ctx.moveTo(x, y + BOX_HEIGHT);
+        ctx.lineTo(x + BOX_WIDTH, y + BOX_HEIGHT);
+        ctx.stroke();
+
+        // テキスト
+        const textWidth = ctx.measureText(entryText).width;
+        ctx.fillText(entryText, x + (BOX_WIDTH - textWidth) / 2, y + 80); // Y位置は微調整
+      }
+    }
+
+    function downloadImage() {
+      const link = document.createElement("a");
+      link.download = "entry_sheet.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    }
+  </script>
+</body>
+
+</html>
